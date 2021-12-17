@@ -115,5 +115,6 @@ async function cloneGithubRepoSlow(ns) {
 
 /** @param {NS} ns **/
 export async function main(ns) {
+    ns.toast("Hello!");
     await cloneGithubRepo(ns);
 }
