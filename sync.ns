@@ -100,7 +100,7 @@ async function shaStrRecusion(ns, latestSha, count, totalCount) {
                 await shaStrRecusion(ns, latestSha, count+1, totalCount);
             }
         } else {
-            ns.write(LATEST_SHA_FILE, shaStr, "w");
+            await ns.write(LATEST_SHA_FILE, shaStr, "w");
             await cloneGithubRepo_impl(ns, shaStr);
         }
     });
@@ -110,9 +110,9 @@ async function shaStrRecusion(ns, latestSha, count, totalCount) {
 async function cloneGithubRepo(ns) {
     if (ns.fileExists(LATEST_SHA_FILE)) {
         let latestSha = ns.read(LATEST_SHA_FILE);
-        shaStrRecusion(ns, latestSha, 0, 5);
+        await shaStrRecusion(ns, latestSha, 0, 5);
     } else {
-        shaStrRecusion(ns, "", 0, 0);
+        await shaStrRecusion(ns, "", 0, 0);
     }
 }
 
