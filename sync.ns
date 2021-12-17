@@ -10,7 +10,7 @@ function grabParser(grabData) {
     let filenameInProgress = "";
     let filenames = [];
 
-    for (let i = 0; i < length(grabData); ++i) {
+    for (let i = 0; i < grabData.length; ++i) {
         let c = string[i];
 
         if (state == 0) {
