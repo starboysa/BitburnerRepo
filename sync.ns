@@ -1,5 +1,9 @@
+let GITHUB_USERNAME = "starboysa"
+let GITHUB_REPONAME = "BitburnerRepo"
+let GITHUB_BRANCHNAME = "main"
+let GITHUB_API_STR = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/commits/" + GITHUB_BRANCHNAME
+
 let REPO_PLAINTEXT_PREFIX = "https://raw.githubusercontent.com/starboysa/BitburnerRepo/main/"
-let TMP_FOLDER = ""
 let GRAB_FILE = "grab.txt"
 
 function isWS(c) {
@@ -36,12 +40,43 @@ function grabParser(grabData) {
     return filenames;
 }
 
-/** @param {NS} ns **/
-export async function main(ns) {
-    ns.print("Hello");
-    await ns.write(TMP_FOLDER + GRAB_FILE, "w");
-    await ns.wget(REPO_PLAINTEXT_PREFIX + GRAB_FILE, TMP_FOLDER + GRAB_FILE);
-    if (ns.fileExists(TMP_FOLDER + GRAB_FILE)) {
+async function toFile(ns, filename, url) {
+    await ns.write(filename, "w");
+    await ns.wget(url, filename);
+}
+
+async function getRepoInfo(ns, cb) {
+    let SHA_FILENAME = "githubLatestSHA.txt";
+    await toFile(ns, SHA_FILENAME, GITHUB_API_STR);
+
+    let apiResponse = ns.read(SHA_FILENAME);
+
+    let shaStr = "";
+    let loop = true;
+    for (let i = 12; loop; ++i) {
+        if (apiResponse[i] == '"') {
+            ns.print("Closing loop on index " + i);
+            loop = false;
+        } else {
+            shaStr += apiResponse[i]
+        }
+    }
+
+    await ns.rm(SHA_FILENAME);
+    cb(shaStr);
+}
+
+async function rawFromGithub(ns, filename, commitSha) {
+
+}
+
+async function rawFromGithubSlow(ns, filename) {
+    await toFile(ns, filename, REPO_PLAINTEXT_PREFIX + filename);
+}
+
+async function cloneGithubRepoSlow(ns) {
+    await rawFromGithubSlow(ns, GRAB_FILE);
+    if (ns.fileExists(GRAB_FILE)) {
         ns.print("Got grab file!");
         let grabFile = ns.read(TMP_FOLDER + GRAB_FILE);
         let filenames = grabParser(grabFile);
@@ -50,10 +85,19 @@ export async function main(ns) {
         for (let i = 0; i < filenames.length; ++i) {
             ns.print(filenames[i]);
             
-            await ns.write(filenames[i], "w");
-            await ns.wget(REPO_PLAINTEXT_PREFIX + filenames[i], filenames[i]);
+            await rawFromGithubSlow(ns, filenames[i]);
         }
 
-        await ns.rm(TMP_FOLDER + GRAB_FILE);
+        await ns.rm(GRAB_FILE);
+    }
+}
+
+/** @param {NS} ns **/
+export async function main(ns) {
+    await getRepoInfo(ns, function(shaStr) {
+        ns.print(shaStr);
+    });
+    while (true) {
+        await ns.sleep(1000);
     }
 }
