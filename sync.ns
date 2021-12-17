@@ -111,7 +111,7 @@ async function shaStrRecusion(ns, latestSha, count, totalCount) {
 async function cloneGithubRepo(ns) {
     if (ns.fileExists(LATEST_SHA_FILE)) {
         let latestSha = ns.read(LATEST_SHA_FILE);
-        await shaStrRecusion(ns, latestSha, 0, 5);
+        await shaStrRecusion(ns, latestSha, 0, 10);
     } else {
         await shaStrRecusion(ns, "", 0, 0);
     }
