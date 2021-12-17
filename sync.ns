@@ -49,6 +49,11 @@ export async function main(ns) {
         ns.print("Filenames parsed:");
         for (let i = 0; i < filenames.length; ++i) {
             ns.print(filenames[i]);
+            
+            await ns.write(filenames[i], "w");
+            await ns.wget(REPO_PLAINTEXT_PREFIX + filenames[i], filenames[i]);
         }
+
+        await ns.rm(TMP_FOLDER + GRAB_FILE);
     }
 }
