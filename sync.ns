@@ -3,11 +3,11 @@ let GITHUB_REPONAME = "BitburnerRepo"
 let GITHUB_BRANCHNAME = "main"
 let GITHUB_API_STR = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/commits/" + GITHUB_BRANCHNAME
 
-let REPO_PLAINTEXT_PREFIX = "https://raw.githubusercontent.com/starboysa/BitburnerRepo/main/"
+let REPO_PLAINTEXT_PREFIX = "https://raw.githubusercontent.com/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/" + GITHUB_BRANCHNAME + "/"
 let GRAB_FILE = "grab.txt"
 
 function isWS(c) {
-    return c == '\n' || c == ' ' || c == '\t';
+    return c == '\n' || c == ' ' || c == '\t' || c == '\r';
 }
 
 function grabParser(grabData) {
@@ -52,22 +52,43 @@ async function getRepoInfo(ns, cb) {
     let apiResponse = ns.read(SHA_FILENAME);
 
     let shaStr = "";
-    let loop = true;
-    for (let i = 12; loop; ++i) {
-        if (apiResponse[i] == '"') {
-            ns.print("Closing loop on index " + i);
-            loop = false;
-        } else {
-            shaStr += apiResponse[i]
-        }
+    for (let i = 12; i < (12 + 40); ++i) {
+        shaStr += apiResponse[i]
     }
 
+    ns.toast("Grabbing commit " + shaStr);
     await ns.rm(SHA_FILENAME);
-    cb(shaStr);
+    await cb(shaStr);
 }
 
 async function rawFromGithub(ns, filename, commitSha) {
+    let githackURL = "https://rawcdn.githack.com/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/" + commitSha + "/" + filename;
+    await toFile(ns, filename, githackURL);
+}
 
+// Could probably factor the general struc
+async function cloneGithubRepo(ns) {
+    await getRepoInfo(ns, async function (shaStr) {
+        await rawFromGithub(ns, GRAB_FILE, shaStr);
+        if (ns.fileExists(GRAB_FILE)) {
+            let grabFile = ns.read(GRAB_FILE);
+            let filenames = grabParser(grabFile);
+
+            ns.print("Filenames parsed");
+            for (let i = 0; i < filenames.length; ++i) {
+                ns.print("Grabbing " + filenames[i]);
+                await rawFromGithub(ns, filenames[i], shaStr);
+
+                if (!ns.fileExists(filenames[i])) {
+                    ns.print("Failed to grab " + filenames[i]);
+                }
+            }
+
+            await ns.rm(GRAB_FILE);
+        } else {
+            ns.print("Couldn't find grab file");
+        }
+    });
 }
 
 async function rawFromGithubSlow(ns, filename) {
@@ -78,13 +99,13 @@ async function cloneGithubRepoSlow(ns) {
     await rawFromGithubSlow(ns, GRAB_FILE);
     if (ns.fileExists(GRAB_FILE)) {
         ns.print("Got grab file!");
-        let grabFile = ns.read(TMP_FOLDER + GRAB_FILE);
+        let grabFile = ns.read(GRAB_FILE);
         let filenames = grabParser(grabFile);
 
         ns.print("Filenames parsed:");
         for (let i = 0; i < filenames.length; ++i) {
             ns.print(filenames[i]);
-            
+
             await rawFromGithubSlow(ns, filenames[i]);
         }
 
@@ -94,9 +115,7 @@ async function cloneGithubRepoSlow(ns) {
 
 /** @param {NS} ns **/
 export async function main(ns) {
-    await getRepoInfo(ns, function(shaStr) {
-        ns.print(shaStr);
-    });
+    await cloneGithubRepo(ns);
     while (true) {
         await ns.sleep(1000);
     }
