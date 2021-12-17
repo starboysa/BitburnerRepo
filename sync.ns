@@ -116,7 +116,4 @@ async function cloneGithubRepoSlow(ns) {
 /** @param {NS} ns **/
 export async function main(ns) {
     await cloneGithubRepo(ns);
-    while (true) {
-        await ns.sleep(1000);
-    }
 }
