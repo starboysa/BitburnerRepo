@@ -94,7 +94,7 @@ async function shaStrRecusion(ns, latestSha, count, totalCount) {
     await getRepoInfo(ns, async function(ns, shaStr) {
         if (latestSha === shaStr) {
             ns.toast("No new changes found... (" + count + " / " + totalCount + ")");
-            if (count >= totalCount) {
+            if (count > totalCount) {
                 ns.toast("Couldn't detect changes, aborting...");
             } else {
                 await ns.sleep(2000);
