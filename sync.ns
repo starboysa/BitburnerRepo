@@ -113,7 +113,6 @@ async function shaStrRecusion(ns, latestSha, count, totalCount) {
     });
 }
 
-// Could probably factor the general struc
 async function cloneGithubRepo(ns) {
     if (ns.fileExists(LATEST_SHA_FILE)) {
         let latestSha = ns.read(LATEST_SHA_FILE);
