@@ -2,7 +2,7 @@ let REPO_PLAINTEXT_PREFIX = "https://raw.githubusercontent.com/starboysa/Bitburn
 let TMP_FOLDER = "~/tmp/"
 let GRAB_FILE = ".grab"
 
-function grabParser(grabData: string): string[] {
+function grabParser(grabData) {
     // STATE MACHINE:
     // 0: ANY
     // 1: PARSING FILE NAME
