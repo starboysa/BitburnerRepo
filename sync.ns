@@ -58,7 +58,6 @@ async function getRepoInfo(ns, cb) {
         shaStr += apiResponse[i]
     }
 
-    ns.toast("Grabbing commit " + shaStr);
     await ns.rm(SHA_FILENAME);
     await cb(ns, shaStr);
 }
@@ -69,6 +68,7 @@ async function rawFromGithub(ns, filename, commitSha) {
 }
 
 async function cloneGithubRepo_impl(ns, shaStr) {
+    ns.toast("Grabbing commit " + shaStr);
     await rawFromGithub(ns, GRAB_FILE, shaStr);
     if (ns.fileExists(GRAB_FILE)) {
         let grabFile = ns.read(GRAB_FILE);
