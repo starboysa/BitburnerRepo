@@ -1,0 +1,10 @@
+/** @param {NS} ns **/
+export async function main(ns) {
+    if (ns.args[0] == undefined) {
+        ns.toast("Invalid use");
+    }
+    if (!ns.fileExists(ns.args[0])) {
+        ns.toast("File doesn't exist");
+    }
+    await ns.prompt(ns.read(ns.args[0]));
+}
