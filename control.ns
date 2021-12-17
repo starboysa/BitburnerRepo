@@ -1,0 +1,16 @@
+/** @param {NS} ns **/
+export async function main(ns) {
+	let scriptName = ns.args[0];
+	let hostName = ns.args[1];
+
+	ns.toast("script name " + scriptName + " on host " + hostName)
+    let scriptRam = ns.getScriptRam(scriptName);
+	let freeRam = ns.getServerMaxRam(hostName) - ns.getServerUsedRam(hostName);
+	let threadCount = Math.trunc(freeRam / scriptRam);
+
+	if (ns.serverExists(hostName)) {
+		ns.print("Found server!");
+		await ns.scp(scriptName, hostName);
+		await ns.exec(scriptName, hostName, threadCount);
+	}
+}
