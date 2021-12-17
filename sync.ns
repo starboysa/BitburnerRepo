@@ -54,6 +54,8 @@ async function getRepoInfo(ns, cb) {
     let apiResponse = ns.read(SHA_FILENAME);
 
     let shaStr = "";
+    // Sha string always starts at the 12 index of the response
+    // Sha's are always 40 characters long
     for (let i = 12; i < (12 + 40); ++i) {
         shaStr += apiResponse[i]
     }
