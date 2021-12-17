@@ -97,6 +97,7 @@ async function shaStrRecusion(ns, latestSha, count, totalCount) {
             if (count >= totalCount) {
                 ns.toast("Couldn't detect changes, aborting...");
             } else {
+                await ns.sleep(2000);
                 await shaStrRecusion(ns, latestSha, count+1, totalCount);
             }
         } else {
