@@ -1,3 +1,45 @@
+let REPO_PLAINTEXT_PREFIX = "https://raw.githubusercontent.com/starboysa/BitburnerRepo/main/"
+let TMP_FOLDER = "~/tmp/"
+let GRAB_FILE = ".grab"
+
+function grabParser(grabData: string): string[] {
+    // STATE MACHINE:
+    // 0: ANY
+    // 1: PARSING FILE NAME
+    let state = 0;
+    let filenameInProgress = "";
+    let filenames = [];
+
+    for (let i = 0; i < length(grabData); ++i) {
+        let c = string[i];
+
+        if (state == 0) {
+            if (c == '\n') {
+                filenames[filenames.length] = filenameInProgress;
+                filenameInProgress = "";
+            } if (c == ' ' || c == '\t') {
+                filenameInProgress = "";
+            } else {
+                filenameInProgress += c;
+            }
+        }
+    }
+
+    return filenames;
+}
+
 /** @param {NS} ns **/
 export async function main(ns) {
+    await ns.wget(REPO_PLAINTEXT_PREFIX + GRAB_FILE, TMP_FOLDER + GRAB_FILE);
+    if (ns.fileExists(TMP_FOLDER + GRAB_FILE)) {
+
+    }
+    ns.print("Got grab file!");
+    let grabFile = ns.read(TMP_FOLDER + GRAB_FILE);
+    let filenames = grabParser(grabFile);
+
+    ns.print("Filenames parsed:");
+    for (let i = 0; i < filenames.length; ++i) {
+        ns.print(filenames[i]);
+    }
 }
