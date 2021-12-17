@@ -1,17 +1,21 @@
+// You can run this file first if you want to grab my scripts,
+// but change these variables to your own github information
 let GITHUB_USERNAME = "starboysa"
 let GITHUB_REPONAME = "BitburnerRepo"
 let GITHUB_BRANCHNAME = "main"
-let GITHUB_API_STR = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/commits/" + GITHUB_BRANCHNAME
 
-let REPO_PLAINTEXT_PREFIX = "https://raw.githubusercontent.com/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/" + GITHUB_BRANCHNAME + "/"
 let GRAB_FILE = "grab.txt"
-
 let LATEST_SHA_FILE = "current_sha.txt";
+
+// DON'T CHANGE THESE
+let GITHUB_API_STR = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/commits/" + GITHUB_BRANCHNAME
+let REPO_PLAINTEXT_PREFIX = "https://raw.githubusercontent.com/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/" + GITHUB_BRANCHNAME + "/"
 
 function isWS(c) {
     return c == '\n' || c == ' ' || c == '\t' || c == '\r';
 }
 
+// This is really just a split string impl. Abstract it if you want
 function grabParser(grabData) {
     // STATE MACHINE:
     // 0: ANY
