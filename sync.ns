@@ -6,6 +6,8 @@ let GITHUB_API_STR = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + G
 let REPO_PLAINTEXT_PREFIX = "https://raw.githubusercontent.com/" + GITHUB_USERNAME + "/" + GITHUB_REPONAME + "/" + GITHUB_BRANCHNAME + "/"
 let GRAB_FILE = "grab.txt"
 
+let LATEST_SHA_FILE = "current_sha.txt";
+
 function isWS(c) {
     return c == '\n' || c == ' ' || c == '\t' || c == '\r';
 }
@@ -58,7 +60,7 @@ async function getRepoInfo(ns, cb) {
 
     ns.toast("Grabbing commit " + shaStr);
     await ns.rm(SHA_FILENAME);
-    await cb(shaStr);
+    await cb(ns, shaStr);
 }
 
 async function rawFromGithub(ns, filename, commitSha) {
@@ -66,29 +68,52 @@ async function rawFromGithub(ns, filename, commitSha) {
     await toFile(ns, filename, githackURL);
 }
 
-// Could probably factor the general struc
-async function cloneGithubRepo(ns) {
-    await getRepoInfo(ns, async function (shaStr) {
-        await rawFromGithub(ns, GRAB_FILE, shaStr);
-        if (ns.fileExists(GRAB_FILE)) {
-            let grabFile = ns.read(GRAB_FILE);
-            let filenames = grabParser(grabFile);
+async function cloneGithubRepo_impl(ns, shaStr) {
+    await rawFromGithub(ns, GRAB_FILE, shaStr);
+    if (ns.fileExists(GRAB_FILE)) {
+        let grabFile = ns.read(GRAB_FILE);
+        let filenames = grabParser(grabFile);
 
-            ns.print("Filenames parsed");
-            for (let i = 0; i < filenames.length; ++i) {
-                ns.print("Grabbing " + filenames[i]);
-                await rawFromGithub(ns, filenames[i], shaStr);
+        ns.print("Filenames parsed");
+        for (let i = 0; i < filenames.length; ++i) {
+            ns.print("Grabbing " + filenames[i]);
+            await rawFromGithub(ns, filenames[i], shaStr);
 
-                if (!ns.fileExists(filenames[i])) {
-                    ns.print("Failed to grab " + filenames[i]);
-                }
+            if (!ns.fileExists(filenames[i])) {
+                ns.print("Failed to grab " + filenames[i]);
             }
+        }
 
-            await ns.rm(GRAB_FILE);
+        await ns.rm(GRAB_FILE);
+    } else {
+        ns.print("Couldn't find grab file");
+    }
+}
+
+async function shaStrRecusion(ns, latestSha, count, totalCount) {
+    await getRepoInfo(ns, async function(ns, shaStr) {
+        if (latestSha === shaStr) {
+            ns.toast("No new changes found... (" + count + " / " + totalCount + ")");
+            if (count >= totalCount) {
+                ns.toast("Couldn't detect changes, aborting...");
+            } else {
+                await shaStrRecusion(ns, latestSha, count+1, totalCount);
+            }
         } else {
-            ns.print("Couldn't find grab file");
+            ns.write(LATEST_SHA_FILE, shaStr, "w");
+            await cloneGithubRepo_impl(ns, shaStr);
         }
     });
+}
+
+// Could probably factor the general struc
+async function cloneGithubRepo(ns) {
+    if (ns.fileExists(LATEST_SHA_FILE)) {
+        let latestSha = ns.read(LATEST_SHA_FILE);
+        shaStrRecusion(ns, latestSha, 0, 5);
+    } else {
+        shaStrRecusion(ns, "", 0, 0);
+    }
 }
 
 async function rawFromGithubSlow(ns, filename) {
